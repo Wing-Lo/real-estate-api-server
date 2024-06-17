@@ -9,19 +9,21 @@ from init import db, ma
 class User(db.Model):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(200), unique=True)
-    first_name: Mapped[Optional[str]] = mapped_column(String(100))
-    last_name: Mapped[Optional[str]] = mapped_column(String(100))
-    contact_number: Mapped[int] = mapped_column
-    password: Mapped[str] = mapped_column(String(200))
-    is_admin: Mapped[bool] = mapped_column(Boolean(), server_default="false")
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String, nullable=False, unique=True)
+    contact_number = db.Column(db.String(10), nullable=False)
+    password = db.Column(db.String, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
+    appointments = db.relationship('Appointments', back_populates='user', cascade='all, delete')
 
 class UserSchema(ma.Schema):
     name = fields.String(required=True)
     email = fields.Email(required=True)
     password = fields.String(required=True, validate=Length(min=8))
 
+    appointments = fields.List(fields.Nested('AppointmentSchema', exclude=['user']))
+
     class Meta:
-        fields = ('id', 'email', 'first_name', 'last_name', 'contact_number', 'password', 'is_admin')
+        fields = ('id', 'name', 'email', 'contact_number', 'password', 'is_admin')
