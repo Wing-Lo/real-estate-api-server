@@ -21,6 +21,7 @@ class User(db.Model):
 class UserSchema(ma.Schema):
     name = fields.String(required=True)
     email = fields.Email(required=True)
+    contact_number = fields.String(required=True)
     password = fields.String(required=True, validate=Length(min=8))
 
     appointments = fields.List(fields.Nested('AppointmentSchema', exclude=['user']))
