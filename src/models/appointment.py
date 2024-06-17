@@ -1,7 +1,7 @@
 from sqlalchemy.orm import validates
-from init import db, ma
 from sqlalchemy import UniqueConstraint
 from marshmallow import fields
+from init import db, ma
 
 
 class Appointment(db.Model):

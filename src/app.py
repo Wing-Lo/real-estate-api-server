@@ -29,9 +29,5 @@ def create_app():
     bcrypt.init_app(app)
     jwt.init_app(app)
 
-    @app.route('/documentation')
-    def documentation():
-        return auto.html()
 
     return app
-
