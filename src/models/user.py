@@ -13,7 +13,8 @@ class User(db.Model):
     password = db.Column(db.String, nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
-    appointments = db.relationship('Appointments', back_populates='user', cascade='all, delete')
+    appointments = db.relationship('Appointment', back_populates='user', cascade='all, delete')
+    testimonials = db.relationship('Testimonial', back_populates='user', cascade='all, delete')
 
 class UserSchema(ma.Schema):
     name = fields.String(required=True)

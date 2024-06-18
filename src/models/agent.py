@@ -25,7 +25,7 @@ class Agent(db.Model):
     languages = db.Column(db.ARRAY(db.Enum(LanguagesEnum)))
 
     appointments = db.relationship('Appointment', back_populates='agent', cascade='all, delete')
-    testimonial = db.relationship('Testimonial', back_populates='agent', cascade='all, delete')
+    testimonials = db.relationship('Testimonial', back_populates='agent', cascade='all, delete')
 
 
 class AgentSchema(ma.Schema):

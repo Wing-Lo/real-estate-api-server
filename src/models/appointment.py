@@ -10,9 +10,9 @@ class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.Time, nullable=False)
-
-    agent_id = db.Column(db.Integer, db.ForeignKey('agents.id', ondelete='CASCADE'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate="cascade", ondelete='cascade'), nullable=False)
+    agent_id = db.Column(db.Integer, db.ForeignKey('agents.id', onupdate="cascade", ondelete='cascade'), nullable=False)
 
     agent = db.relationship('Agent', back_populates='appointments')
     user = db.relationship('User', back_populates='appointments')
@@ -30,7 +30,7 @@ class Appointment(db.Model):
 
 class AppointmentSchema(ma.Schema):
     user = fields.Nested('UserSchema', only=['id', 'name', 'email', 'contact_number'])
-    veterinarian = fields.Nested('VeterinarianSchema', only=['first_name', 'last_name', 'email'])
+    agent = fields.Nested('AgentSchema', only=['name', 'email', 'contact_number'])
 
     class Meta:
-        fields = ['id', 'date', 'time', 'veterinarian_id', 'veterinarian', 'patient', 'patient_id', 'patient.name']
+        fields = ['id', 'date', 'time', 'agent_id', 'agent', 'user', 'user_id']

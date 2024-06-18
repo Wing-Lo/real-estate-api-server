@@ -4,18 +4,18 @@ from init import db, ma
 
 
 class Testimonial(db.Model):
-    __tablename__ = 'testimonial'
+    __tablename__ = 'testimonials'
     id = db.Column(db.Integer, primary_key=True)
     property_address = db.Column(db.String(250), nullable=False)
     comment = db.Column(db.Text(), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
     date_created = db.Column(db.Date())
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    agent_id = db.Column(db.Integer, db.ForeignKey('agents.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate="cascade", ondelete='cascade'), nullable=False)
+    agent_id = db.Column(db.Integer, db.ForeignKey('agents.id', onupdate="cascade", ondelete='cascade'), nullable=False)
 
-    user = db.relationship('User', back_populates='reviews')
-    agent = db.relationship('Agent', back_populates='review')
+    user = db.relationship('User', back_populates='testimonials')
+    agent = db.relationship('Agent', back_populates='testimonials')
 
 class TestimonialSchema(ma.Schema):
     property_address = fields.String(required=True)
