@@ -117,6 +117,14 @@ def seed_db():
             date_created=date.today(),
             user_id=users[3].id,
             agent_id=agents[4].id
+        ),
+        Testimonial(
+            property_address='9 Dream Street, Brisbane QLD 4000',
+            comment='Lorem Ipsum is simply dummy information and therefore cannot be used in real life.',
+            rating=5,
+            date_created=date.today(),
+            user_id=users[1].id,
+            agent_id=agents[3].id
         )
     ]
     db.session.add_all(testimonials)
