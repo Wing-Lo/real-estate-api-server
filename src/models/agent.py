@@ -34,7 +34,8 @@ class AgentSchema(ma.Schema):
     contact_number = fields.String(required=True)
     overview = fields.String(required=True)
     languages = fields.List(EnumField(LanguagesEnum))
-    # appointments = fields.List(fields.Nested('AppointmentSchema', only=['date', 'time', 'user_id']))
+
+    appointments = fields.List(fields.Nested('AppointmentSchema', only=['date', 'time', 'user_id']))
 
     class Meta:
         fields = ('id', 'name', 'email', 'contact_number', 'overview', 'languages')

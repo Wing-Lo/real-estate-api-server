@@ -22,9 +22,11 @@ class TestimonialSchema(ma.Schema):
     comment = fields.String(required=True)
     rating = fields.Integer(required=True, validate=Range(min=0, max=5))
     date_created = fields.Date()
+    user_id = fields.Integer(required=True)
+    agent_id = fields.Integer(required=True)
 
-    user = fields.Nested('UserSchema', only=['name'])
-    agent = fields.Nested('CommentSchema', only=['id', 'name', 'email', 'contact_number'], many=True) 
+    user = fields.Nested('UserSchema', only=['id', 'name', 'email', 'contact_number'])
+    agent = fields.Nested('AgentSchema', only=['id', 'name', 'email', 'contact_number'])
 
     class Meta:
-        fields = ('id', 'property_address', 'comment', 'rating', 'date_created', 'user', 'agent')
+        fields = ('id', 'property_address', 'comment', 'rating', 'date_created', 'user', 'agent', 'user_id', 'agent_id')
