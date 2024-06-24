@@ -6,6 +6,7 @@ from blueprints.users_bp import users_bp
 from blueprints.agents_bp import agents_bp
 from blueprints.auth_bp import auth_bp
 from blueprints.testimonials_bp import testimonials_bp
+from blueprints.appointments_bp import appointments_bp
 
 def create_app():
     app = Flask(__name__)
@@ -39,6 +40,7 @@ def create_app():
     app.register_blueprint(agents_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(testimonials_bp)
+    app.register_blueprint(appointments_bp)
 
 
     return app
