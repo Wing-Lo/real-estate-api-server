@@ -6,17 +6,20 @@ from models.testimonial import Testimonial
 from models.appointment import Appointment
 from init import db, bcrypt
 
+# Define blueprint for database commands
 db_commands = Blueprint('db', __name__)
 
+# Command to create tables in the database
 @db_commands.cli.command('create')
 def create_db():
-    db.drop_all()
-    db.create_all()
+    db.drop_all()  # Drop existing tables
+    db.create_all()  # Create tables based on defined models
     print('Tables created')
 
-
+# Command to seed initial data into the database
 @db_commands.cli.command('seed')
 def seed_db():
+    # Create initial users
     users = [
         User(
             name='Administrator',
@@ -50,9 +53,12 @@ def seed_db():
             password=bcrypt.generate_password_hash('tftf1234').decode('utf-8')
         )
     ]
+
+    # Add users to session and commit to database
     db.session.add_all(users)
     db.session.commit()
 
+    # Create initial agents
     agents = [
         Agent(
             name='Peter Richard',
@@ -90,9 +96,12 @@ def seed_db():
             languages=['Korean', 'Japanese']
         )
     ]
+
+    # Add agents to session and commit to database
     db.session.add_all(agents)
     db.session.commit()
 
+    # Create initial testimonials
     testimonials = [
         Testimonial(
             property_address='33 Main Street, Brisbane QLD 4000',
@@ -127,9 +136,12 @@ def seed_db():
             agent_id=agents[3].id
         )
     ]
+
+    # Add testimonials to session and commit to database
     db.session.add_all(testimonials)
     db.session.commit()
 
+    # Create initial appointments
     appointments = [
         Appointment(
             date='2024-8-3',
@@ -162,7 +174,9 @@ def seed_db():
             user_id=5,
         )
     ]
+
+    # Add appointments to session and commit to database
     db.session.add_all(appointments)
     db.session.commit()
 
-    print('Tables seeded')
+    print('Tables seeded')  # Confirmation message after seeding
