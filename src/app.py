@@ -1,5 +1,6 @@
 from flask import Flask
 from marshmallow.exceptions import ValidationError
+from sqlalchemy.exc import IntegrityError
 from init import db, ma, bcrypt, jwt
 from blueprints.cli_bp import db_commands
 from blueprints.users_bp import users_bp
@@ -21,10 +22,25 @@ def create_app():
     def invalid_request(err):
         return {"error": vars(err)["messages"]}, 400
 
+    @app.errorhandler(ValueError)
+    def invalid_data(err):
+        return {"error": str(err)}, 400
 
     @app.errorhandler(KeyError)
     def missing_key(err):
         return {"error": f"Missing field: {str(err)}"}, 400
+    
+    @app.errorhandler(IntegrityError)
+    def integrity_error(err):
+        return {"error": str(err)}, 409
+    
+    @app.errorhandler(PermissionError)
+    def permission_error(err):
+        return {"error": str(err)}, 403
+    
+    @app.errorhandler(Exception)
+    def unhandled_exception(err):
+        return {"error": str(err)}, 500
 
 
     app.config.from_object('config.app_config')
