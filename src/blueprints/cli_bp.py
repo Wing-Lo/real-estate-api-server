@@ -133,31 +133,31 @@ def seed_db():
     appointments = [
         Appointment(
             date='2024-8-3',
-            time='10:15',
+            time='10:15:00',
             agent_id=1,
             user_id=1,
         ),
         Appointment(
             date='2024-9-4',
-            time='10:30',
+            time='10:30:00',
             agent_id=1,
             user_id=2,
         ),
         Appointment(
             date='2024-11-2',
-            time='10:45',
+            time='10:45:00',
             agent_id=3,
             user_id=3,
         ),
         Appointment(
             date='2024-11-12',
-            time='10:00',
+            time='10:00:00',
             agent_id=2,
             user_id=4,
         ),
         Appointment(
             date='2024-12-3',
-            time='10:30',
+            time='10:30:00',
             agent_id=4,
             user_id=5,
         )

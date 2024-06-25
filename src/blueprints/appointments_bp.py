@@ -1,49 +1,65 @@
-from datetime import date
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import IntegrityError
+from marshmallow.exceptions import ValidationError
 from models.appointment import Appointment, AppointmentSchema
 from init import db
-from blueprints.auth_bp import admin_required
-from marshmallow.exceptions import ValidationError
-
+from blueprints.auth_bp import admin_required, admin_or_owner_required
 
 appointments_bp = Blueprint("appointments", __name__, url_prefix="/appointments")
 
 
 # Get all appointments
 @appointments_bp.route("/", methods=["GET"])
-@jwt_required()  # Get the JSON web token from the request
+@jwt_required()
 def get_all_appointments():
-    stmt = db.select(Appointment).order_by(Appointment.id)
-    appointments = db.session.scalars(stmt).all()
+    try:
+        admin_required()
 
-    if not appointments:
-        return jsonify(message="No appointments found"), 404
+        appointments = Appointment.query.order_by(Appointment.id).all()
 
-    return AppointmentSchema(many=True, exclude=["agent_id","user_id"]).dump(appointments)
+        if not appointments:
+            return {"error": "Appointment not found"}, 404
+
+        return AppointmentSchema(many=True, exclude=["agent_id", "user_id"]).dump(
+            appointments
+        )
+
+    except PermissionError as e:
+        return {"error": str(e)}, 403
+
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 
-# Retrieve one testimonial
+# Retrieve one appointment
 @appointments_bp.route("/<int:appointment_id>", methods=["GET"])
-@jwt_required()  # Get the JSON web token from the request
+@jwt_required()
 def get_one_appointment(appointment_id):
-    stmt = db.select(Appointment).filter_by(id=appointment_id)
-    appointment = db.session.scalar(stmt)
-    if appointment:
-        return AppointmentSchema(exclude=["agent_id","user_id"]).dump(appointment)
-    else:
-        return {"error": "Appointment not found"}, 404
+    try:
+        appointment = Appointment.query.get(appointment_id)
 
-# create appointment
+        if not appointment:
+            return {"error": "Appointment not found"}, 404
+
+        admin_or_owner_required(appointment.user_id)
+
+        return AppointmentSchema(exclude=["agent_id", "user_id"]).dump(appointment)
+
+    except PermissionError as e:
+        return {"error": str(e)}, 403
+
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
+# Create appointment
 @appointments_bp.route("/", methods=["POST"])
-@jwt_required()  # Get the JSON web token from the user as users must be logged in to add a review
+@jwt_required()
 def create_appointment():
     try:
         new_appointment = AppointmentSchema().load(request.json)
-        
-        # Validate date format (handled by Marshmallow schema)
-        # Ensure appointment time meets custom validation rules
+
         appointment = Appointment(
             date=new_appointment["date"],
             time=new_appointment["time"],
@@ -51,56 +67,108 @@ def create_appointment():
             agent_id=new_appointment["agent_id"],
         )
 
-    except ValidationError as err:
-        return {"message": str(err)}, 400
-    except ValueError as err:
-        return {"message": str(err)}, 400
-
-    try:
         db.session.add(appointment)
         db.session.commit()
+
         return AppointmentSchema(exclude=["agent_id", "user_id"]).dump(appointment), 201
+
+    except ValidationError as err:
+        db.session.rollback()
+        return {"message": str(err)}, 400
+
     except IntegrityError as e:
         db.session.rollback()
-        if 'appointment_agent_uc' in str(e):
-            return {"error": "Appointment with this date, time, and agent already exists."}, 409
-        elif 'appointment_user_uc' in str(e):
-            return {"error": "Appointment with this date, time, and user already exists."}, 409
+        if "appointment_agent_uc" in str(e):
+            return {
+                "error": "Appointment with this date, time, and agent already exists."
+            }, 409
+        elif "appointment_user_uc" in str(e):
+            return {
+                "error": "Appointment with this date, time, and user already exists."
+            }, 409
         else:
             return {"error": "Database Integrity Error."}, 409
+
     except KeyError:
         db.session.rollback()
         return {"error": "Please provide all details of the appointment"}, 400
-    
-# # Update a testimonial
-# @appointments_bp.route("/<int:testimonial_id>", methods=["PUT", "PATCH"])
-# @jwt_required()
-# def update_testimonial(testimonial_id):
-#     testimonial = Testimonial.query.get(testimonial_id)
-#     if testimonial:
-#         admin_required()
-#         testimonial_info = TestimonialSchema().load(request.json, partial=True)
-#         testimonial.property_address = testimonial_info.get("property_address", testimonial.property_address)
-#         testimonial.comment = testimonial_info.get("comment", testimonial.comment)
-#         testimonial.rating = testimonial_info.get("rating", testimonial.rating)
-#         testimonial.user_id = testimonial_info.get("user_id", testimonial.user.id)
-#         testimonial.agent_id = testimonial_info.get("agent_id", testimonial.agent.id)
 
-#         db.session.commit()
-#         return TestimonialSchema(exclude=["agent_id","user_id"]).dump(testimonial)
-#     else:
-#         return {"error": "Testimonial not found"}, 404
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 500
 
 
-# # Delete a testimonial - only admins can do this
-# @appointments_bp.route("/<int:testimonial_id>", methods=["DELETE"])
-# @jwt_required()
-# def delete_testimonial(testimonial_id):
-#     testimonial = Testimonial.query.get(testimonial_id)
-#     if testimonial:
-#         admin_required()
-#         db.session.delete(testimonial)
-#         db.session.commit()
-#         return {"message": f"Testimonial ID - {testimonial.id} deleted successfully"}, 200
-#     else:
-#         return {"error": "Testimonial not found"}, 404
+# Update an appointment
+@appointments_bp.route("/<int:appointment_id>", methods=["PUT", "PATCH"])
+@jwt_required()
+def update_appointment(appointment_id):
+    try:
+        appointment = Appointment.query.get(appointment_id)
+        if not appointment:
+            return {"error": "Appointment not found"}, 404
+
+        admin_or_owner_required(appointment.user_id)
+
+        appointment_info = AppointmentSchema().load(request.json)
+        appointment.date = appointment_info.get("date", appointment.date)
+        appointment.time = appointment_info.get("time", appointment.time)
+        appointment.user_id = appointment_info.get("user_id", appointment.user_id)
+        appointment.agent_id = appointment_info.get("agent_id", appointment.agent_id)
+
+        db.session.commit()
+
+        return AppointmentSchema(exclude=["agent_id", "user_id"]).dump(appointment), 200
+
+    except KeyError:
+        db.session.rollback()
+        return {"error": "Please provide all details of the appointment"}, 400
+
+    except ValidationError as err:
+        db.session.rollback()
+        return {"message": str(err)}, 400
+
+    except IntegrityError as e:
+        db.session.rollback()
+        if "appointment_agent_uc" in str(e):
+            return {
+                "error": "Appointment with this date, time, and agent already exists."
+            }, 409
+        elif "appointment_user_uc" in str(e):
+            return {
+                "error": "Appointment with this date, time, and user already exists."
+            }, 409
+        else:
+            return {"error": "User or Agent is not found"}, 409
+
+    except PermissionError as e:
+        return {"error": str(e)}, 403
+
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 500
+
+
+# Delete an appointment - only admin and appointment owner can do this
+@appointments_bp.route("/<int:appointment_id>", methods=["DELETE"])
+@jwt_required()
+def delete_appointment(appointment_id):
+    try:
+        appointment = Appointment.query.get(appointment_id)
+        if not appointment:
+            return {"error": "Appointment not found"}, 404
+
+        admin_or_owner_required(appointment.user_id)
+
+        db.session.delete(appointment)
+        db.session.commit()
+
+        return {
+            "message": f"Appointment ID - {appointment.id} deleted successfully"
+        }, 200
+
+    except PermissionError as e:
+        return {"error": str(e)}, 403
+
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 500
