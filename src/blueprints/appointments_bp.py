@@ -1,7 +1,6 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import IntegrityError
-from marshmallow.exceptions import ValidationError
 from models.appointment import Appointment, AppointmentSchema
 from init import db
 from blueprints.auth_bp import admin_required, admin_or_owner_required

@@ -11,7 +11,9 @@ users_bp = Blueprint("users", __name__, url_prefix="/users")
 # Get all users
 @users_bp.route("/", methods=["GET"])
 @jwt_required()
-def all_users():
+def get_all_users():
+    admin_required()
+
     stmt = db.select(User).order_by(User.id)
     users = db.session.scalars(stmt).all()
 
@@ -21,7 +23,9 @@ def all_users():
 # Get a one user
 @users_bp.route("/<int:user_id>", methods=["GET"])
 @jwt_required()
-def one_user(user_id):
+def get_one_user(user_id):
+    admin_or_owner_required(user_id)
+
     stmt = db.select(User).filter_by(id=user_id)
     user = db.session.scalar(stmt)
 
@@ -64,7 +68,6 @@ def make_admin(user_id):
     if user:
         admin_required()
         user.is_admin = True
-
         db.session.commit()
 
         return {"message": f"user {user.name} with ID {user.id} is now an admin"}, 200
@@ -78,11 +81,10 @@ def make_admin(user_id):
 def delete_user(user_id):
     user = User.query.get(user_id)
     if user:
-        admin_required()
-
+        admin_or_owner_required(user_id)
         db.session.delete(user)
         db.session.commit()
-        
+
         return {"message": f"User {user.name} deleted successfully"}, 200
     else:
         return {"error": "User not found"}, 404
