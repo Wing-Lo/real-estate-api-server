@@ -1,5 +1,5 @@
 from datetime import timedelta
-from flask import Blueprint, request, abort, jsonify
+from flask import Blueprint, request
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token, get_jwt_identity
 from models.user import User, UserSchema

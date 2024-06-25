@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import IntegrityError
 from models.testimonial import Testimonial, TestimonialSchema
 from init import db
-from blueprints.auth_bp import admin_required, admin_or_owner_required
+from blueprints.auth_bp import admin_or_owner_required
 
 testimonials_bp = Blueprint("testimonials", __name__, url_prefix="/testimonials")
 
