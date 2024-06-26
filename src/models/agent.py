@@ -1,5 +1,4 @@
-from marshmallow import fields
-from sqlalchemy.orm import validates
+from marshmallow import fields, validate
 import enum
 from marshmallow_enum import EnumField
 from init import db, ma
@@ -30,11 +29,12 @@ class Agent(db.Model):
 
 # Marshmallow schema for serializing/deserializing Agent model
 class AgentSchema(ma.Schema):
-    name = fields.String(required=True)  # Name is required
+    name = fields.String(required=True, validate=validate.Length(min=1, max=100))  # Name is required and must be between 1 and 100 characters
     email = fields.Email(required=True)  # Email is required
-    contact_number = fields.String(required=True)  # Contact number is required
-    overview = fields.String(required=True)  # Overview is required
-    languages = fields.List(EnumField(LanguagesEnum))  # List of languages
+    contact_number = fields.String(required=True, validate=validate.Regexp(
+        r'^\+?1?\d{9,15}$', error="Contact number must be a valid phone number"))  # Contact number must be valid phone number format
+    overview = fields.String(required=True, validate=validate.Length(min=10, max=2000))  # Overview is required and must be between 10 and 2000 characters
+    languages = fields.List(EnumField(LanguagesEnum), required=True, validate=validate.Length(min=1))  # List of languages, at least one language is required
 
     # Nested relationship field for appointments, only including specific fields
     appointments = fields.List(fields.Nested('AppointmentSchema', only=['date', 'time', 'user_id']))

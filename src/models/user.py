@@ -1,5 +1,5 @@
 from marshmallow import fields
-from marshmallow.validate import Length
+from marshmallow.validate import Length, Regexp
 from init import db, ma
 
 # User model for SQLAlchemy
@@ -19,9 +19,10 @@ class User(db.Model):
 
 # Marshmallow schema for serializing/deserializing User model
 class UserSchema(ma.Schema):
-    name = fields.String(required=True)  # Name is required
+    name = fields.String(required=True, validate=Length(min=1, max=100))  # Name is required and must be between 1 and 100 characters
     email = fields.Email(required=True)  # Email is required
-    contact_number = fields.String(required=True)  # Contact number is required
+    contact_number = fields.String(required=True, validate=Regexp(
+        r'^\+?1?\d{9,15}$', error="Contact number must be a valid phone number"))  # Contact number must be a valid phone number format
     password = fields.String(required=True, validate=Length(min=8))  # Password is required and must be at least 8 characters long
 
     # Nested relationship field for appointments, excluding the user field

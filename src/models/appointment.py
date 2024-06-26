@@ -1,7 +1,7 @@
 from sqlalchemy.orm import validates
 from sqlalchemy import UniqueConstraint
 from datetime import datetime, date
-from marshmallow import fields
+from marshmallow import fields, validate
 from init import db, ma
 
 # Appointment model for SQLAlchemy
@@ -86,8 +86,8 @@ class AppointmentSchema(ma.Schema):
     id = fields.Integer(dump_only=True)  # ID (output only)
     date = fields.String(required=True)  # Date of the appointment (required)
     time = fields.String(required=True)  # Time of the appointment (required)
-    user_id = fields.Integer(required=True)  # User ID associated with the appointment (required)
-    agent_id = fields.Integer(required=True)  # Agent ID associated with the appointment (required)
+    user_id = fields.Integer(required=True, validate=validate.Range(min=1, error="User ID must be a positive integer"))  # User ID must be a positive integer (required)
+    agent_id = fields.Integer(required=True, validate=validate.Range(min=1, error="Agent ID must be a positive integer"))  # Agent ID must be a positive integer (required)
 
     # Nested field for user details (output only)
     user = fields.Nested(

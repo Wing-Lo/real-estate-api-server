@@ -1,4 +1,4 @@
-from marshmallow import fields
+from marshmallow import fields, validate
 from marshmallow.validate import Range
 from init import db, ma 
 
@@ -18,12 +18,12 @@ class Testimonial(db.Model):
     agent = db.relationship('Agent', back_populates='testimonials')
 
 class TestimonialSchema(ma.Schema):
-    property_address = fields.String(required=True)
-    comment = fields.String(required=True)
-    rating = fields.Integer(required=True, validate=Range(min=0, max=5))
-    date_created = fields.Date()
-    user_id = fields.Integer(required=True)
-    agent_id = fields.Integer(required=True)
+    property_address = fields.String(required=True, validate=validate.Length(min=1, max=200))  # Property address is required and must be between 1 and 200 characters
+    comment = fields.String(required=True, validate=validate.Length(min=10, max=1000))  # Comment is required and must be between 10 and 1000 characters
+    rating = fields.Integer(required=True, validate=Range(min=0, max=5))  # Rating must be between 0 and 5
+    date_created = fields.Date(required=True)  # Date created is required
+    user_id = fields.Integer(required=True, validate=validate.Range(min=1, error="User ID must be a positive integer"))  # User ID must be a positive integer (required)
+    agent_id = fields.Integer(required=True, validate=validate.Range(min=1, error="Agent ID must be a positive integer"))  # Agent ID must be a positive integer (required)
 
     user = fields.Nested('UserSchema', only=['id', 'name', 'email', 'contact_number'])
     agent = fields.Nested('AgentSchema', only=['id', 'name', 'email', 'contact_number'])
