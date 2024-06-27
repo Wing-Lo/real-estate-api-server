@@ -44,11 +44,50 @@ In managing my project, I chose to use Trello as my main tool for task allocatio
 
 Each task in Trello includes a due date, which helps me stay disciplined and ensures I keep on track with my project timeline. This setup is crucial for maintaining a sense of progress and meeting project milestones.
 
-For tasks that require detailed implementation, such as creating the database, models, and blueprints for entities like users, agents, testimonials, and bookings, I utilised Trello's checklist feature. This allows me to break down complex tasks into smaller, manageable sub-tasks. Checking off items on the checklist ensures that I cover all necessary aspects of each task before marking it as complete.
+For tasks that require detailed implementation, such as creating the database, models, and blueprints for entities like users, agents, testimonials, and bookings, I utilised Trello's checklist feature. This allows me to break down complex tasks into smaller, manageable sub-tasks. I also used the checklist feature to handle all endpoints testing. Checking off items on the checklist ensures that I cover all necessary aspects of each task before marking it as complete.
 
 Regular stand-up posts have been part of my routine to review progress, adjust priorities, and reflect on any challenges encountered. This practice helps me maintain focus and adapt to any changes or new insights that arise during the project.
 
 Overall, Trello has been an effective tool for me to organise, track, and manage my project tasks independently, ensuring I stay productive and meet my project goals effectively.
+
+16/06/2024: Draw ERD for database design
+![Trello-16062024](docs/trello-16062024.png)
+
+17/06/2024: Project setup and basic error handling
+![Trello-17062024](docs/trello-17062024.png)
+
+18/06/2024: Database structure in postgresql
+![Trello-18062024](docs/trello-18062024.png)
+![Trello-18062024-2](docs/trello-18062024-2.png)
+
+19/06/2024: Sqlalchemy model and marshmallow schemas
+![Trello-19062024](docs/trello-19062024.png)
+
+20/06/2024: JWT authentication for user and admin
+![Trello-20062024](docs/trello-20062024.png)
+
+21/06/2024 - 23/06/2024: Blueprints for `users` and `testimonials`
+![Trello-21062024](docs/trello-21062024.png)
+![DC-21062024](docs/dc-21062024.png)
+
+24/06/2024: Blueprints for `agents`
+![DC-24062024](docs/dc-24062024.png)
+
+25/06/2024: Blueprints for `appointments`
+![DC-25062024](docs/dc-25062024.png)
+
+26/06/2024: Testing endpoints and add more validation
+![Trello-26062024](docs/trello-26062024.png)
+![Trello-26062024-2](docs/trello-26062024-2.png)
+![Trello-26062024-3](docs/trello-26062024-3.png)
+![DC-26062024](docs/dc-26062024.png)
+
+27/06/2024: Adding inline comments
+![Trello-27062024](docs/trello-27062024.png)
+![DC-27062024](docs/dc-27062024.png)
+
+28/06/2024 - 29/06/2024: Documentation
+![Trello-28062024](docs/trello-28062024.png)
 
 ### R3. List and explain the third-party services, packages and dependencies used in this app.
 
@@ -70,7 +109,7 @@ Overall, Trello has been an effective tool for me to organise, track, and manage
 
 5. **Marshmallow**
    - **Description**: Marshmallow is an ORM/ODM framework-agnostic library for converting complex data types to and from native Python data types.
-   - **Usage in Project**: Marshmallow is used for data serialisation and deserialization (object-to-dictionary conversion and vice versa). In your project, it's used with Flask SQLAlchemy to define schemas (`UserSchema`, `AgentSchema`, `AppointmentSchema`, `TestimonialSchema`) that specify how database models should be serialised to JSON responses and deserialized from JSON requests.
+   - **Usage in Project**: Marshmallow is used for data serialization and deserialization, crucial for converting objects to dictionary formats and vice versa. In this project, Marshmallow is integrated with Flask SQLAlchemy to define schemas (`UserSchema`, `AgentSchema`, `AppointmentSchema`, `TestimonialSchema`). These schemas not only facilitate the conversion of database models to JSON responses and vice versa but also enforce robust validation rules. For instance, they ensure fields like `name`, `email`, and `password` meet specific criteria such as required presence, length constraints, and pattern validation using regular expressions, ensuring data integrity throughout the application's data lifecycle.
 
 6. **SQLAlchemy**
    - **Description**: SQLAlchemy is an SQL toolkit and Object-Relational Mapping (ORM) library for Python. It provides a full suite of well-known enterprise-level persistence patterns.
@@ -439,8 +478,6 @@ In conclusion, the models and their defined relationships in this project using 
 
 ### R8. Explain how to use this application’s API endpoints
 
-### API Endpoints
-
 #### 1. Authentication Endpoints
 
 **Register User**
@@ -452,12 +489,28 @@ In conclusion, the models and their defined relationships in this project using 
   - Returns a JSON object with user information excluding the password.
   - Status code 201 for successful registration.
   - Status code 409 if the email address is already in use.
+  - Status code 400 if the email address is not valid.
+  - Status code 400 if the name has 0 or more than 100 characters.
+  - Status code 400 if there is a missing field.
+  - Status code 400 if the password is less than 8 characters.
 
 Example: Successful registration
 ![auth-register](docs/auth-register.png)
 
 Example: Email address is already in use
 ![auth-register-error409](docs/auth-register-409.png)
+
+Example: Email address is not valid
+![auth-register-error400-4](docs/auth-register-400-4.png)
+
+Example: No input in name.
+![auth-register-error400](docs/auth-register-400.png)
+
+Example: Missing field in name
+![auth-register-error400-3](docs/auth-register-400-3.png)
+
+Example: Password is less than 8 characters
+![auth-register-error400-2](docs/auth-register-400-2.png)
 
 **Login User**
 - **HTTP Verb**: POST
@@ -485,12 +538,17 @@ Example: Invalid email or password
 - **Response**: 
   - Returns a JSON array of user objects excluding the password.
   - Status code 200 for successful retrieval.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful retrieval
 ![user-all](docs/users-all.png)
 
 Example: Missing authorization header
 ![user-all-error401](docs/users-all-401.png)
+
+Example: Unauthorized Access Token.
+![user-all-error403](docs/users-all-403.png)
 
 **Get One User**
 - **HTTP Verb**: GET
@@ -501,6 +559,8 @@ Example: Missing authorization header
   - Returns a JSON object with user information excluding the password for the specified `user_id`.
   - Status code 200 for successful retrieval.
   - Status code 404 if user not found.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful retrieval
 ![user-one](docs/users-one.png)
@@ -519,9 +579,26 @@ Example: User not found
   - Returns a JSON object with updated user information excluding the password.
   - Status code 200 for successful update.
   - Status code 404 if user not found.
+  - Status code 400 if the email address is not valid.
+  - Status code 400 if the name has 0 or more than 100 characters.
+  - Status code 400 if the password is less than 8 characters.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful update
 ![user-update](docs/users-update.png)
+
+Example: User not found
+![user-update-404](docs/users-update-404.png)
+
+Example: Email address is not valid.
+![user-update-400](docs/users-update-400.png)
+
+Example: Name has not input
+![user-update-400-2](docs/users-update-400-2.png)
+
+Example: Password is less than 8 characters
+![user-update-400-3](docs/users-update-400-3.png)
 
 **Make User Admin**
 - **HTTP Verb**: PUT or PATCH
@@ -531,10 +608,19 @@ Example: Successful update
 - **Response**: 
   - Returns a JSON object confirming that the specified user is now an admin.
   - Status code 200 for successful update.
+  - Status code 401 for missing authorization header.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
   - Status code 404 if user not found.
 
 Example: Successful made user admin
 ![user-make-admin](docs/users-make-admin.png)
+
+Example: Missing authorization header
+![user-make-admin-401](docs/users-make-admin-401.png)
+
+Example: User not found
+![user-make-admin-404](docs/users-make-admin-404.png)
 
 **Delete User**
 - **HTTP Verb**: DELETE
@@ -544,12 +630,119 @@ Example: Successful made user admin
 - **Response**: 
   - Returns a JSON object confirming successful deletion of the user.
   - Status code 200 for successful deletion.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
   - Status code 404 if user not found.
 
 Example: Successful deletion
 ![users-delete](docs/users-delete.png)
 
-#### 3. Testimonial Management Endpoints
+#### 3. Agent Management Endpoints
+
+**Get All Agents**
+- **HTTP Verb**: GET
+- **Path**: `/agents/`
+- **Required Header Data**: 
+  - JWT token in the Authorization header.
+- **Response**: 
+  - Returns a JSON object with agent information.
+  - Status code 200 for successful retrieval.
+
+Example: Successful retrieval
+![agent-all](docs/agents-all.png)
+
+**Get One Agent**
+- **HTTP Verb**: GET
+- **Path**: `/agents/<int:agent_id>`
+- **Required Header Data**: 
+  - JWT token in the Authorization header.
+- **Response**: 
+  - Returns a JSON object with agent information.
+  - Status code 200 for successful retrieval.
+  - Status code 404 if agent not found.
+
+Example: Successful retrieval
+![agent-one](docs/agents-one.png)
+
+Example: agent not found
+![agent-one-404](docs/agents-one-404.png)
+
+**Create Agent**
+- **HTTP Verb**: POST
+- **Path**: `/agents/`
+- **Required Header Data**: 
+  - JWT token in the Authorization header. (Admin required)
+- **Required Body Data**: 
+  - JSON object with fields `name`, `email`, `overview`, `languages` and `contact_number`.
+- **Response**: 
+  - Returns a JSON object with created agent information.
+  - Status code 201 for successful creation.
+  - Status code 400 if no input in name.
+  - Status code 400 if email is not valid.
+  - Status code 400 if contact number is not valid.
+  - Status code 400 if overview is too short.
+  - Status code 403 if missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
+
+Example: Successful creation
+![agent-create](docs/agents-create.png)
+
+Example: No input in name
+![agent-create-400](docs/agents-create-400.png)
+
+Example: Email is not valid
+![agent-create-400-2](docs/agents-create-400-2.png)
+
+Example: Contact number is not valid
+![agent-create-400-3](docs/agents-create-400-3.png)
+
+Example: Overview is too short
+![agent-create-400-4](docs/agents-create-400-4.png)
+
+Example: Missing authentication header
+![agent-create-403](docs/agents-create-403.png)
+
+Example: Unauthorized Access Token
+![agent-create-403-2](docs/agents-create-403-2.png)
+
+**Update Agent**
+- **HTTP Verb**: PUT or PATCH
+- **Path**: `/agents/<int:agent_id>`
+- **Required Header Data**: 
+  - JWT token in the Authorization header. (Admin required)
+- **Required Body Data**: 
+  - JSON object with fields `name`, `email`, `overview`, `languages` and `contact_number`. Partial updates are supported.
+- **Response**: 
+  - Returns a JSON object with updated agent information.
+  - Status code 400 if email is not valid.
+  - Status code 400 if contact number is not valid.
+  - Status code 400 if overview is too short.
+  - Status code 403 if missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
+  - Status code 404 for agent not found.
+
+Example: Successful update
+![agent-update](docs/agents-update.png)
+
+Example: Agent not found
+![agent-update-404](docs/agents-update-404.png)
+
+**Delete User**
+- **HTTP Verb**: DELETE
+- **Path**: `/users/<int:user_id>`
+- **Required Header Data**: 
+  - JWT token in the Authorization header. (Admin required)
+- **Response**: 
+  - Returns a JSON object confirming successful deletion of the user.
+  - Status code 200 for successful deletion.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
+  - Status code 404 if user not found.
+
+Example: Successful deletion
+![users-delete](docs/users-delete.png)
+
+#### 4. Testimonial Management Endpoints
 
 **Get All Testimonials**
 - **HTTP Verb**: GET
@@ -590,12 +783,22 @@ Example: Testimonial not found
   - Returns a JSON object with created testimonial information excluding the `agent_id` and `user_id`.
   - Status code 201 for successful creation.
   - Status code 409 if user or agent is not found.
+  - Status code 400 for no input in property address.
+  - Status code 400 for rating out of range (0-5).
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful creation
 ![testimonials-create](docs/testimonials-create.png)
 
 Example: User or agent is not found
 ![testimonials-create-error409](docs/testimonials-create-409.png)
+
+Example: No input in property address
+![testimonials-create-error400-2](docs/testimonials-create-400-2.png)
+
+Example: Rating is not in between 0-5
+![testimonials-create-error400](docs/testimonials-create-400.png)
 
 **Update Testimonial**
 - **HTTP Verb**: PUT or PATCH
@@ -608,9 +811,15 @@ Example: User or agent is not found
   - Returns a JSON object with updated testimonial information excluding the `agent_id` and `user_id`.
   - Status code 200 for successful update.
   - Status code 404 if testimonial not found.
+  - Status code 400 for rating out of range (0-5).
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful update
 ![testimonials-update](docs/testimonials-update.png)
+
+Example: Testimonials not found
+![testimonials-update-404](docs/testimonials-update-404.png)
 
 **Delete Testimonial**
 - **HTTP Verb**: DELETE
@@ -621,11 +830,13 @@ Example: Successful update
   - Returns a JSON object confirming successful deletion of the testimonial.
   - Status code 200 for successful deletion.
   - Status code 404 if testimonial not found.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful deletion
 ![testimonials-delete](docs/testimonials-delete.png)
 
-#### 4. Appointment Management Endpoints
+#### 5. Appointment Management Endpoints
 
 **Get All Appointments**
 - **HTTP Verb**: GET
@@ -635,6 +846,8 @@ Example: Successful deletion
 - **Response**: 
   - Returns a JSON array of appointment objects excluding the `agent_id` and `user_id`.
   - Status code 200 for successful retrieval.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful retrieval
 ![appointments-all](docs/appointments-all.png)
@@ -648,6 +861,8 @@ Example: Successful retrieval
   - Returns a JSON object with appointment information excluding the `agent_id` and `user_id` for the specified `appointment_id`.
   - Status code 200 for successful retrieval.
   - Status code 404 if appointment not found.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful retrieval
 ![appointments-one](docs/appointments-one.png)
@@ -682,7 +897,6 @@ Example: Invalid appointment time
 Example: Invalid appointment time (out of working hours)
 ![appointments-create-400-2](docs/appointments-create-400-2.png)
 
-
 **Update Appointment**
 - **HTTP Verb**: PUT or PATCH
 - **Path**: `/appointments/<int:appointment_id>`
@@ -695,12 +909,17 @@ Example: Invalid appointment time (out of working hours)
   - Status code 200 for successful update.
   - Status code 409 if appointment with the same date, time, and user or agent already exists.
   - Status code 404 if appointment not found.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful update
 ![appointments-update](docs/appointments-update.png)
 
 Example: Appointment update conflict
 ![appointments-update-409](docs/appointments-update-409.png)
+
+Example: Appointment not found
+![appointments-update-404](docs/appointments-update-404.png)
 
 **Delete Appointment**
 - **HTTP Verb**: DELETE
@@ -711,11 +930,12 @@ Example: Appointment update conflict
   - Returns a JSON object confirming successful deletion of the appointment.
   - Status code 200 for successful deletion.
   - Status code 404 if appointment not found.
+  - Status code 401 for missing authorization header.
+  - Status code 403 for Unauthorized Access Token.
 
 Example: Successful delete
 ![appointments-delete](docs/appointments-delete.png)
 
 ### Conclusion
 
-These API endpoints allow clients to interact with the application to manage users, testimonials, appointments, and authentication. Each endpoint requires proper authentication via JWT tokens, and responses provide relevant data or error messages to indicate the outcome of the operation.
-
+These API endpoints allow clients to interact with the application to manage users, agents, testimonials, appointments, and authentication. Each endpoint requires proper authentication via JWT tokens, and responses provide relevant data or error messages to indicate the outcome of the operation.
